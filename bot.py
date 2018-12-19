@@ -24,7 +24,7 @@ logger.addHandler(gm)
 try:
     0 / 0
 except:
-    logger.exception("Tinder bot test mail")
+    logger.exception("Mail test")
 
 # http_client.HTTPConnection.debuglevel = 1
 
@@ -72,7 +72,7 @@ resp = s.post(url, json=body)
 
 core_url = BASE_URL + "v2/recs/core"
 matches_url = BASE_URL + "v2/matches"
-msg_url = BASE_URL + "user/matches"
+msg_url = BASE_URL + "user/matches/"
 like_url = BASE_URL + "like/"
 pass_url = BASE_URL + "pass/"
 n_liked = 0
@@ -88,8 +88,7 @@ try:
             datetime_auto_msg = datetime(date_today.year, date_today.month, date_today.day, cfg.auto_msg_hour)
             datetime_now = datetime.now()
             datetime_delta = datetime_now - datetime_auto_msg
-            # if datetime_delta.days == 0 and datetime_delta.seconds < 5 * 60:
-            if True:
+            if datetime_delta.days == 0 and datetime_delta.seconds < 5 * 60:
                 # fetch matches
                 params = {
                     "count": 60,
@@ -99,7 +98,7 @@ try:
                 matches = resp_json['data']['matches']
                 for match in matches:
                     # message pending matches
-                    if match['pending']:
+                    if len(match['messages']) == 0:
                         _id = match['_id']
                         body = {
                             "matchId": _id,

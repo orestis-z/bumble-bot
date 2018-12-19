@@ -10,7 +10,7 @@ lon = -0.1168105
 # bot config
 like_prob = 0.65
 # auto_msg_on = True
-auto_msg_on = False
+auto_msg_on = True
 auto_msg_hour = 21 # 9pm
 auto_msg = "Let's make a baby"
 
