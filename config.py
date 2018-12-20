@@ -4,15 +4,17 @@ facebook_token = "EAAGm0PX4ZCpsBACoRFvkYGpre4lQLeWWWLxp1FGaZC6ddtbMtD03bOwEOibs6
 api_token = "d07a6b11-571b-4e6c-a09e-73deda1a6672"
 
 # coordinates
-lat = 51.5468556
-lon = -0.1168105
+lat = 51.5468556 # London, N78ST
+lon = -0.1168105 # London, N78ST
 
 # bot config
-like_prob = 0.65
-# auto_msg_on = True
+like_prob = 0.68
+swipe_timeout = 3 # [s]
 auto_msg_on = True
 auto_msg_hour = 21 # 9pm
 auto_msg = "Let's make a baby"
 
-# logging
-email = "orestis.zambounis@gmail.com"
+# exceptions
+exception_timeout = 5 * 60 # 5min
+error_max = 5
+email = "orestis.zambounis@gmail.com" # for crash report

@@ -76,8 +76,9 @@ msg_url = BASE_URL + "user/matches/"
 like_url = BASE_URL + "like/"
 pass_url = BASE_URL + "pass/"
 n_liked = 0
-try:
-    while True:
+errors = 0
+while errors < cfg.error_max:
+    try:
         # fetch users
         resp = s.get(core_url)
         resp_json = json.loads(resp.text)
@@ -124,6 +125,9 @@ try:
             else:
                 resp = s.get(pass_url + _id, params=params)
                 logging.debug("Pass {}".format(user_str))
-            time.sleep(random.uniform(2, 3))
-except Exception as e:
-    logger.exception(e)
+            time.sleep(cfg.swipe_timeout)
+        errors = 0
+    except Exception as e:
+        logger.exception(e)
+        time.sleep(cfg.exception_timeout)
+        errors += 1
