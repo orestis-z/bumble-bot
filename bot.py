@@ -15,6 +15,8 @@ from smtp_handler import TlsSMTPHandler
 BASE_URL = "https://api.gotinder.com/"
 KM_TO_MILES = 0.621371
 
+api_token = input("Enter API token:")
+
 logging.basicConfig(level=logging.DEBUG)
 password = getpass.getpass("Enter password for {}:".format(cfg.email))
 gm = TlsSMTPHandler(("smtp.gmail.com", 587), cfg.email, [cfg.email], "Tinder bot exception", (cfg.email, password))
@@ -34,21 +36,7 @@ def calculate_age(born):
 
 s = requests.Session()
 s.headers.update({
-    "User-Agent": "Tinder/4.0.9 (iPhone; iOS 8.1.1; Scale/2.00)"
-})
-
-if cfg.api_token:
-    api_token = cfg.api_token
-else:
-    # fetch tinder api token
-    url = BASE_URL + "v2/auth/login/facebook"
-    body = {
-        "token": cfg.facebook_token,
-    }
-    resp = s.post(url, json=body)
-    resp_json = json.loads(resp.text)
-    api_token = resp_json["data"]["api_token"]
-s.headers.update({
+    "User-Agent": "Tinder/4.0.9 (iPhone; iOS 8.1.1; Scale/2.00)",
     "X-Auth-Token": api_token,
 })
 
@@ -77,7 +65,7 @@ like_url = BASE_URL + "like/"
 pass_url = BASE_URL + "pass/"
 n_liked = 0
 errors = 0
-while errors < cfg.error_max:
+while True:
     try:
         # fetch users
         resp = s.get(core_url)
@@ -127,7 +115,7 @@ while errors < cfg.error_max:
                 logging.debug("Pass {}".format(user_str))
             time.sleep(cfg.swipe_timeout)
         errors = 0
-    except Exception as e:
-        logger.exception(e)
-        time.sleep(cfg.exception_timeout)
+    except:
         errors += 1
+        logger.exception("Exception number {}".format(errors))
+        time.sleep(cfg.exception_timeout * errors)
