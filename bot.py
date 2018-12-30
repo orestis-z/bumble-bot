@@ -8,14 +8,15 @@ import random
 import logging
 import logging.handlers
 import getpass
+import re
+from robobrowser import RoboBrowser
 
 import config as cfg
 from smtp_handler import TlsSMTPHandler
 
+
 BASE_URL = "https://api.gotinder.com/"
 KM_TO_MILES = 0.621371
-
-api_token = input("Enter API token:")
 
 logging.basicConfig(level=logging.DEBUG)
 password = getpass.getpass("Enter password for {}:".format(cfg.email))
@@ -34,11 +35,43 @@ def calculate_age(born):
     today = date.today()
     return today.year - born.year - ((today.month, today.day) < (born.month, born.day))
 
+def login(s):
+    browser = RoboBrowser(
+        user_agent="Mozilla/5.0 (Linux; U; en-gb; KFTHWI Build/JDQ39) AppleWebKit/535.19 (KHTML, like Gecko) Silk/3.16 Safari/535.19",
+        parser="html.parser",
+    )
+    browser.open('https://www.facebook.com/v2.6/dialog/oauth?redirect_uri=fb464891386855067%3A%2F%2Fauthorize%2F&scope=user_birthday,user_photos,user_education_history,email,user_relationship_details,user_friends,user_work_history,user_likes&response_type=token%2Csigned_request&client_id=464891386855067')
+    credentials_form = browser.get_form()
+    credentials_form['email'].value = cfg.fb_email
+    credentials_form['pass'].value = getpass.getpass("Enter password for facebook email {}:".format(cfg.fb_email))
+    browser.submit_form(credentials_form)
+    confirm_form = browser.get_form()
+    try:
+        time.sleep(1) # Fool Facebook security
+        browser.submit_form(confirm_form, submit=confirm_form.submit_fields['__CONFIRM__'])
+        fb_token = re.search(r"access_token=([\w\d]+)", browser.response.content.decode()).groups()[0]
+    except:
+        logger.exception("Login error")
+
+    # login
+    url = BASE_URL + "v2/auth/login/facebook"
+    body = {
+        "token": fb_token,
+    }
+    resp = s.post(url, json=body)
+    resp_json = json.loads(resp.text)
+    api_token = resp_json['data']['api_token']
+    # refresh_token = resp_json['data']['refresh_token']
+    s.headers.update({
+        "X-Auth-Token": api_token,
+    })
+
 s = requests.Session()
 s.headers.update({
     "User-Agent": "Tinder/4.0.9 (iPhone; iOS 8.1.1; Scale/2.00)",
-    "X-Auth-Token": api_token,
 })
+
+login(s)
 
 # fetch profile
 url = BASE_URL + "v2/profile"
@@ -78,9 +111,10 @@ while True:
             datetime_now = datetime.now()
             datetime_delta = datetime_now - datetime_auto_msg
             if datetime_delta.days == 0 and datetime_delta.seconds < 5 * 60:
-                # fetch matches
+                # fetch unmessaged matches
                 params = {
                     "count": 60,
+                    "message": 0,
                 }
                 resp = s.get(matches_url, params=params)
                 resp_json = json.loads(resp.text)
@@ -91,11 +125,11 @@ while True:
                         _id = match['_id']
                         body = {
                             "matchId": _id,
-                            "message": cfg.auto_msg,
+                            "message": cfg.auto_msg_txt,
                             "userId": user_id,
                         }
                         resp = s.post(msg_url + _id, json=body)
-                        logging.debug("Messaged {}: {}".format(match['person']['name'], cfg.auto_msg))
+                        logging.debug("Messaged {}: {}".format(match['person']['name'], cfg.auto_msg_txt))
 
         # like users
         for user in results:
@@ -116,6 +150,10 @@ while True:
             time.sleep(cfg.swipe_timeout)
         errors = 0
     except:
+        if resp_json['meta']['status'] == 401:
+            logging.debug("Session expired. Logging in...")
+            login(s)
+            continue
         errors += 1
         logger.exception("Exception number {}".format(errors))
         time.sleep(cfg.exception_timeout * errors)

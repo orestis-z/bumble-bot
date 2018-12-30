@@ -1,14 +1,24 @@
+import os
+from dotenv import load_dotenv
+
+
+load_dotenv()
+
+# auth
+fb_email = os.getenv("FB_EMAIL")
+assert fb_email is not None, "Please provide the facebook email"
+
 # coordinates
-lat = 51.5468556 # London, N78ST
-lon = -0.1168105 # London, N78ST
+lat = os.getenv("LAT")
+lon = os.getenv("LON")
 
 # bot config
-like_prob = 0.68
-swipe_timeout = 4 # [s]
-auto_msg_on = True
-auto_msg_hour = 21 # 9pm
-auto_msg = "Let's make a baby"
+like_prob = os.getenv("LIKE_PROB", 0.5)
+swipe_timeout = os.getenv("SWIPE_TIMEOUT", 30) # [s]
+auto_msg_on = os.getenv("AUTO_MSG_ON", False)
+auto_msg_hour = os.getenv("AUTO_MSG_HOUR", 21) # 9pm
+auto_msg_txt = os.getenv("AUTO_MSG_TXT")
 
 # exceptions
-exception_timeout = 10 * 60 # 10min
-email = "orestis.zambounis@gmail.com" # for crash report
+exception_timeout = os.getenv("EXCEPTION_TIMEOUT", 600) # 10min
+email = os.getenv("EMAIL", "orestis.zambounis@gmail.com") # for crash report
