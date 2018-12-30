@@ -110,8 +110,7 @@ while True:
             datetime_auto_msg = datetime(date_today.year, date_today.month, date_today.day, cfg.auto_msg_hour)
             datetime_now = datetime.now()
             datetime_delta = datetime_now - datetime_auto_msg
-            # if datetime_delta.days == 0 and datetime_delta.seconds < 5 * 60:
-            if True:
+            if datetime_delta.days == 0 and datetime_delta.seconds < 5 * 60:
                 # fetch unmessaged matches
                 params = {
                     "count": 60,
