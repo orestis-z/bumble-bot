@@ -154,6 +154,6 @@ while True:
             logging.debug("Session expired. Logging in...")
             login(s)
             continue
-        errors += 1
         logger.exception("Exception number {}".format(errors))
-        time.sleep(cfg.exception_timeout * errors)
+        time.sleep(cfg.exception_timeout * 2 ** errors) # double the timeout with every proceeding error
+        errors += 1
