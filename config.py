@@ -14,7 +14,7 @@ lon = os.getenv("LON")
 
 # bot config
 like_prob = os.getenv("LIKE_PROB", 0.5)
-swipe_timeout = os.getenv("SWIPE_TIMEOUT", 30) # [s]
+swipe_timeout = int(os.getenv("SWIPE_TIMEOUT", 30)) # [s]
 auto_msg_on = os.getenv("AUTO_MSG_ON", False)
 auto_msg_hour = os.getenv("AUTO_MSG_HOUR", 21) # 9pm
 auto_msg_txt = os.getenv("AUTO_MSG_TXT")
