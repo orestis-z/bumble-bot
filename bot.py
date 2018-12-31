@@ -29,6 +29,8 @@ try:
 except:
     logger.exception("Mail test")
 
+fb_pwd = getpass.getpass("Enter password for facebook email {}:".format(cfg.fb_email))
+
 # http_client.HTTPConnection.debuglevel = 1
 
 def calculate_age(born):
@@ -43,7 +45,8 @@ def login(s):
     browser.open('https://www.facebook.com/v2.6/dialog/oauth?redirect_uri=fb464891386855067%3A%2F%2Fauthorize%2F&scope=user_birthday,user_photos,user_education_history,email,user_relationship_details,user_friends,user_work_history,user_likes&response_type=token%2Csigned_request&client_id=464891386855067')
     credentials_form = browser.get_form()
     credentials_form['email'].value = cfg.fb_email
-    credentials_form['pass'].value = getpass.getpass("Enter password for facebook email {}:".format(cfg.fb_email))
+    credentials_form['pass'].value = fb_pwd
+    time.sleep(1) # Fool Facebook security
     browser.submit_form(credentials_form)
     confirm_form = browser.get_form()
     try:
