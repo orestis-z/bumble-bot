@@ -5,19 +5,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # auth
-fb_email = os.getenv("FB_EMAIL")
-assert fb_email is not None, "Please provide the facebook email"
-
-# coordinates
-lat = os.getenv("LAT")
-lon = os.getenv("LON")
+phone = os.getenv("PHONE")
+assert phone is not None, "Please provide the phone number"
 
 # bot config
-like_prob = os.getenv("LIKE_PROB", 0.5)
+like_prob = os.getenv("LIKE_PROB", 0.8)
 swipe_timeout = int(os.getenv("SWIPE_TIMEOUT", 30)) # [s]
-auto_msg_on = os.getenv("AUTO_MSG_ON", False)
-auto_msg_hour = os.getenv("AUTO_MSG_HOUR", 21) # 9pm
-auto_msg_txt = os.getenv("AUTO_MSG_TXT")
 
 # exceptions
 exception_timeout = os.getenv("EXCEPTION_TIMEOUT", 600) # 10min

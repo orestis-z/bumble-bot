@@ -15,12 +15,11 @@ import config as cfg
 from smtp_handler import TlsSMTPHandler
 
 
-BASE_URL = "https://api.gotinder.com/"
-KM_TO_MILES = 0.621371
+BASE_URL = "https://bumble.com/unified-api.phtml?"
 
 logging.basicConfig(level=logging.DEBUG)
 password = getpass.getpass("Enter password for {}:".format(cfg.email))
-gm = TlsSMTPHandler(("smtp.gmail.com", 587), cfg.email, [cfg.email], "Tinder bot exception", (cfg.email, password))
+gm = TlsSMTPHandler(("smtp.gmail.com", 587), cfg.email, [cfg.email], "Bumble bot exception", (cfg.email, password))
 gm.setLevel(logging.ERROR)
 logger = logging.getLogger()
 logger.addHandler(gm)
@@ -29,131 +28,113 @@ try:
 except:
     logger.exception("Mail test")
 
-fb_pwd = getpass.getpass("Enter password for facebook email {}:".format(cfg.fb_email))
-
 # http_client.HTTPConnection.debuglevel = 1
 
-def calculate_age(born):
-    today = date.today()
-    return today.year - born.year - ((today.month, today.day) < (born.month, born.day))
-
 def login(s):
-    browser = RoboBrowser(
-        user_agent="Mozilla/5.0 (Linux; U; en-gb; KFTHWI Build/JDQ39) AppleWebKit/535.19 (KHTML, like Gecko) Silk/3.16 Safari/535.19",
-        parser="html.parser",
-    )
-    browser.open('https://www.facebook.com/v2.6/dialog/oauth?redirect_uri=fb464891386855067%3A%2F%2Fauthorize%2F&scope=user_birthday,user_photos,user_education_history,email,user_relationship_details,user_friends,user_work_history,user_likes&response_type=token%2Csigned_request&client_id=464891386855067')
-    credentials_form = browser.get_form()
-    credentials_form['email'].value = cfg.fb_email
-    credentials_form['pass'].value = fb_pwd
-    time.sleep(1) # Fool Facebook security
-    browser.submit_form(credentials_form)
-    confirm_form = browser.get_form()
-    try:
-        time.sleep(1) # Fool Facebook security
-        browser.submit_form(confirm_form, submit=confirm_form.submit_fields['__CONFIRM__'])
-        fb_token = re.search(r"access_token=([\w\d]+)", browser.response.content.decode()).groups()[0]
-    except:
-        logger.exception("Login error")
-
-    # login
-    url = BASE_URL + "v2/auth/login/facebook"
+    url = BASE_URL + "SERVER_LOGIN_BY_PASSWORD"
     body = {
-        "token": fb_token,
+        "version": 1,
+        "message_type": 15,
+        "message_id": 5,
+        "body": [{"message_type": 15, "server_login_by_password": {
+            "remember_me": True,
+            "phone": cfg.phone,
+            "password": getpass.getpass("Enter password for phone {}:".format(cfg.phone))}
+        }]
     }
     resp = s.post(url, json=body)
-    resp_json = json.loads(resp.text)
-    api_token = resp_json['data']['api_token']
-    # refresh_token = resp_json['data']['refresh_token']
-    s.headers.update({
-        "X-Auth-Token": api_token,
-    })
+    assert resp.ok, "Login Error"
 
 s = requests.Session()
-s.headers.update({
-    "User-Agent": "Tinder/4.0.9 (iPhone; iOS 8.1.1; Scale/2.00)",
-})
+
+body = {"version":1,"message_type":2,"message_id":1,"body":[{"message_type":2,"server_app_startup":{"app_build":"MoxieWebapp","app_name":"moxie","app_version":"1.0.0","can_send_sms":False,"user_agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36","screen_width":1680,"screen_height":1050,"language":0,"is_cold_start":True,"external_provider_redirect_url":"https://bumble.com/static/external-auth-result.html?","locale":"en-US","app_platform_type":5,"app_product_type":400,"device_info":{"webcam_available":True,"form_factor":3},"build_configuration":2,"supported_features":[11,15,1,2,4,6,18,16,22,33,70,160,58,140,187,220,197],"supported_minor_features":[317,2,216,244,232,19,225,246,31,125,183,114,8,9,83,41,427,115,288,420,477,39,290,398],"supported_notifications":[83,73,3],"supported_promo_blocks":[{"context":92,"position":13,"types":[71]},{"position":5,"types":[160]},{"context":8,"position":13,"types":[111,112,113]},{"context":45,"position":15,"types":[137]},{"context":53,"position":18,"types":[136,93,12]},{"context":45,"position":15,"types":[93,134,135,136]},{"context":10,"position":1,"types":[265,266]}],"supported_onboarding_types":[15],"user_field_filter_client_login_success":{"projection":[210,220,230,200,91,890,340]},"a_b_testing_settings":{"tests":[]},"dev_features":["bumble_snooze"],"device_id":"ffb4ad39-ad39-3935-359f-9f418abb8c03"}}],"is_background":False}
+resp = s.post(BASE_URL + "SERVER_APP_STARTUP", json=body)
 
 login(s)
 
-# fetch profile
-url = BASE_URL + "v2/profile"
-params = {
-    "include": "user",
-}
-resp = s.get(url, params=params)
-resp_json = json.loads(resp.text)
-user_id = resp_json['data']['user']['_id']
-
-# send coords
-url = BASE_URL + "v2/meta"
+# fetch user list
+url = BASE_URL + "SERVER_GET_USER_LIST"
 body = {
-    "lat": cfg.lat,
-    "lon": cfg.lon,
-    "force_fetch_resources": True,
+    "version": 1,
+    "message_type": 245,
+    "message_id": 2,
+    "body": [{
+        "message_type": 245,
+        "server_get_user_list": {
+            "folder_id":0,
+            "user_field_filter": {"projection": [200,340,230,640,580,300,860,590,591,250,700,762,592,880,582,930,585,583,305,330]},
+            "preferred_count": 30
+        }
+    }],
+    "is_background": False,
 }
 resp = s.post(url, json=body)
+resp_json = json.loads(resp.text)
 
-core_url = BASE_URL + "v2/recs/core"
-matches_url = BASE_URL + "v2/matches"
-msg_url = BASE_URL + "user/matches/"
-like_url = BASE_URL + "like/"
-pass_url = BASE_URL + "pass/"
+encounters_url = BASE_URL + "SERVER_GET_ENCOUNTERS"
+vote_url = BASE_URL + "SERVER_ENCOUNTERS_VOTE"
 n_liked = 0
 errors = 0
 while True:
     try:
-        # fetch users
-        resp = s.get(core_url)
-        resp_json = json.loads(resp.text)
-        results = resp_json["data"]["results"]
-
-        if cfg.auto_msg_on:
-            date_today = date.today()
-            datetime_auto_msg = datetime(date_today.year, date_today.month, date_today.day, cfg.auto_msg_hour)
-            datetime_now = datetime.now()
-            datetime_delta = datetime_now - datetime_auto_msg
-            if datetime_delta.days == 0 and datetime_delta.seconds < 5 * 60:
-                # fetch unmessaged matches
-                params = {
-                    "count": 60,
-                    "message": 0,
+        # fetch encounters
+        body = {
+            "version": 1,
+            "message_type": 81,
+            "message_id": 3,
+            "body": [{
+                "message_type": 81,
+                "server_get_encounters": {
+                    "number": 50,
+                    "user_field_filter": {
+                        "projection": [210,370,200,230,490,540,530,560,290,890,930,662,570,380,493],
+                    }
                 }
-                resp = s.get(matches_url, params=params)
-                resp_json = json.loads(resp.text)
-                matches = resp_json['data']['matches']
-                for match in matches:
-                    # message pending matches
-                    if len(match['messages']) == 0:
-                        _id = match['_id']
-                        body = {
-                            "matchId": _id,
-                            "message": cfg.auto_msg_txt,
-                            "userId": user_id,
-                        }
-                        resp = s.post(msg_url + _id, json=body)
-                        logging.debug("Messaged {}: {}".format(match['person']['name'], cfg.auto_msg_txt))
+            }],
+        }
+        resp = s.post(encounters_url, json=body)
+        assert resp.ok
+        resp_json = json.loads(resp.text)
+        results = resp_json['body'][0]['client_encounters']['results']
+        assert len(results) > 0
 
         # like users
         for user in results:
-            s_number = user["s_number"]
-            _id = user['user']["_id"]
-            params = {
-                "s_number": s_number,
+            user = user["user"]
+            user_id =user["user_id"]
+            name = user["name"]
+            age = user["age"]
+            distance = user.get("distance_short")
+            if not distance:
+                distance = user.get("distance_long")
+            body = {
+                "version": 1,
+                "message_type": 80,
+                "message_id": 4,
+                "body": [{
+                    "message_type":80,
+                    "server_encounters_vote": {
+                        "person_id": user_id,
+                        "vote_source": 1,
+                    }
+                }],
             }
-            user_str = ", ".join([user['user']['name'], str(calculate_age(datetime.strptime(user['user']['birth_date'], "%Y-%m-%dT%H:%M:%S.%fZ"))), "{0:.0f}km".format(user['distance_mi'] / KM_TO_MILES)])
+            user_str = ", ".join([name, str(age), distance])
             if random.uniform(0, 1) < cfg.like_prob:
-                resp = s.get(like_url + _id, params=params)
+                body["body"][0]["server_encounters_vote"]["vote"] = 2
+                resp = s.post(vote_url, json=body)
                 if resp.ok:
                     n_liked += 1
-                logging.debug("Like {} ({} total)".format(user_str, n_liked))
+                    logging.debug("Like {} ({} total)".format(user_str, n_liked))
             else:
-                resp = s.get(pass_url + _id, params=params)
-                logging.debug("Pass {}".format(user_str))
+                body["body"][0]["server_encounters_vote"]["vote"] = 3
+                resp = s.post(vote_url, json=body)
+                if resp.ok:
+                    logging.debug("Pass {}".format(user_str))
             time.sleep(cfg.swipe_timeout)
         errors = 0
     except:
-        if resp_json['meta']['status'] == 401:
+        if resp.status_code == 401:
             logging.debug("Session expired. Logging in...")
             login(s)
             continue
