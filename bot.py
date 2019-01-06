@@ -9,7 +9,6 @@ import logging
 import logging.handlers
 import getpass
 import re
-from robobrowser import RoboBrowser
 
 import config as cfg
 from smtp_handler import TlsSMTPHandler
