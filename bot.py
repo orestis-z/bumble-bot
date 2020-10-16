@@ -17,8 +17,8 @@ from smtp_handler import TlsSMTPHandler
 BASE_URL = "https://bumble.com/unified-api.phtml?"
 
 logging.basicConfig(level=logging.DEBUG)
-password = getpass.getpass("Enter password for {}:".format(cfg.email))
-gm = TlsSMTPHandler(("smtp.gmail.com", 587), cfg.email, [cfg.email], "Bumble bot exception", (cfg.email, password))
+password = getpass.getpass("Enter password for {}:".format(cfg.gmail))
+gm = TlsSMTPHandler(("smtp.gmail.com", 587), cfg.gmail, [cfg.gmail], "Bumble bot exception", (cfg.gmail, password))
 gm.setLevel(logging.ERROR)
 logger = logging.getLogger()
 logger.addHandler(gm)
