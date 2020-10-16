@@ -13,5 +13,5 @@ like_prob = float(os.getenv("LIKE_PROB", 0.8))
 swipe_timeout = int(os.getenv("SWIPE_TIMEOUT", 30)) # [s]
 
 # exceptions
-exception_timeout = os.getenv("EXCEPTION_TIMEOUT", 600) # 10min
+exception_timeout = int(os.getenv("EXCEPTION_TIMEOUT", 600)) # 10min
 gmail = os.getenv("GMAIL") # for crash report
