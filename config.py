@@ -14,4 +14,4 @@ swipe_timeout = int(os.getenv("SWIPE_TIMEOUT", 30)) # [s]
 
 # exceptions
 exception_timeout = os.getenv("EXCEPTION_TIMEOUT", 600) # 10min
-email = os.getenv("EMAIL") # for crash report
+gmail = os.getenv("GMAIL") # for crash report
